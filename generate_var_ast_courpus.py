@@ -5,7 +5,8 @@
 @disc: dump data from binary by ida pro.
 requirements:
     1. binary file name should end with the same suffix (BIN_SUFFIX), e.g. .so
-    2. binary file need to be stripped correctly and save to BINARY_FILE.stripped
+    2. binary file name should contain "_32_" or "_64_" to indicate file arch to choose ida(64)
+    3. binary file need to be stripped correctly and save to BINARY_FILE.stripped
 results:
     1. collect all variable address map, save to BINARY_FILE.varmap.pickle
     2. collect all functions info, save to BINARY_FILE.json
