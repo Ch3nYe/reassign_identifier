@@ -25,9 +25,9 @@ else:
 # everything in its own order. This is important because the
 # order in which functions is decompiled matters!
 if os.name=='nt':
-    assert ida_hexrays.decompile_many('NUL', None, 1)
+    ida_hexrays.decompile_many('NUL', None, 1)
 else:
-    assert ida_hexrays.decompile_many('/dev/null', None, 1)
+    ida_hexrays.decompile_many('/dev/null', None, 1)
 
 inputFileName = inputFileName.replace(".stripped","")
 pickle_file_name = inputFileName+".varmap.pickle"
