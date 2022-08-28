@@ -1,6 +1,0 @@
-Ignoring thunk function D:\PythonProject\reassign_identifier\examples\openssl-openssl-3.0.0_clang-11.0_x86_64_O0_libcrypto.so: sub_B0B0A 
-Ignoring thunk function D:\PythonProject\reassign_identifier\examples\openssl-openssl-3.0.0_clang-11.0_x86_64_O0_libcrypto.so: sub_B0B0A 
-Ignoring thunk function D:\PythonProject\reassign_identifier\examples2\openssl-openssl-3.0.0_gcc-8.2.0_x86_64_O0_libssl.so: sub_20E7A 
-Ignoring thunk function D:\PythonProject\reassign_identifier\examples2\openssl-openssl-3.0.0_gcc-8.2.0_x86_32_O0_libssl.so: sub_13BC1 
-Ignoring thunk function D:\PythonProject\reassign_identifier\examples2\openssl-openssl-3.0.0_gcc-8.2.0_arm_64_O0_libssl.so: sub_21538 
-Ignoring thunk function D:\PythonProject\reassign_identifier\examples2\openssl-openssl-3.0.0_gcc-8.2.0_arm_32_O0_libssl.so: sub_13640 
