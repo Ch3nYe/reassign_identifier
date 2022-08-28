@@ -25,9 +25,9 @@ else:
 # everything in its own order. This is important because the
 # order in which functions is decompiled matters!
 if os.name=='nt':
-    ida_hexrays.decompile_many('NUL', None, 1)
+    assert ida_hexrays.decompile_many('NUL', None, 1)
 else:
-    ida_hexrays.decompile_many('/dev/null', None, 1)
+    assert ida_hexrays.decompile_many('/dev/null', None, 1)
 
 
 # from util.py
@@ -290,6 +290,7 @@ class CollectGraph(CFuncGraph):
 # Process a single function
 def process_func(func):
     function_name = func.name
+    print("[-] process func",function_name)
 
     # Ignore thunk functions
     flags = func.func_t.flags
