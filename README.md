@@ -2,13 +2,24 @@
 
 python generate_var_ast_courpus.py
 
-## Json file format
+
+
+idalog.txt is the log from ida console
+
+binary_unanalyzable_list.txt records the binaries that error occurred during analysis
+
+**We recommend removing these failed binaries**
+
+## Result json file format
 
 ```python3
 with open("xxx.json","r") as f:
-    function_info = json.load(f)
+    functions_info = json.load(f)
+
 '''
-function_info format:
+functions_info is a dict, 
+key format: "<start_ea>_<end_ea>"
+value format:
     function_info["name"] = function_name
     function_info["start_ea"] = func.start_ea
     function_info["end_ea"] = func.end_ea
