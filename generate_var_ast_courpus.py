@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 
 '''
 @usage: python generate_var_ast_courpus.py
@@ -16,6 +16,7 @@ results:
 from multiprocessing import Process, Queue, cpu_count
 import os
 import glob
+import psutil
 import subprocess
 
 
@@ -23,10 +24,22 @@ collect_var_idapython_path = "D:/PythonProject/reassign_identifier/collect_var_i
 dump_info_idapython_path = "D:/PythonProject/reassign_identifier/dump_info_idapython.py"
 binary_path = "D:/PythonProject/reassign_identifier/examples"
 os.environ["LOG_FILE"] = "D:/PythonProject/reassign_identifier/idalog.txt"
-error_list_file = "D:/PythonProject/reassign_identifier/bianry_unanalyzable_list.txt"
+error_list_file = "D:/PythonProject/reassign_identifier/binary_unanalyzable_list.txt"
 BIN_SUFFIX = "*.elf"
 BIN_TIMEOUT = 1800 # set timeout for each binary
 
+
+def kill_pstree(pid):
+    if pid:
+        try:
+            children = psutil.Process(pid).children(recursive=True)
+            for child in children:
+                child.terminate()
+            _, still_alive = psutil.wait_procs(children, timeout=5)
+            for child in still_alive:
+                child.kill()
+        except:
+            pass
 
 def single_test(binary_file, IDA = "ida64"):
     '''
@@ -35,11 +48,18 @@ def single_test(binary_file, IDA = "ida64"):
     print('[-] process: {}'.format(binary_file))
     cmd1 = f"{IDA} -A -L{binary_file}.idalog -S{collect_var_idapython_path} {binary_file}"
     cmd2 = f"{IDA} -A -L{binary_file}.stripped.idalog -S{dump_info_idapython_path} {binary_file}.stripped"
+    p1_id, p2_id = None, None
     try:
-        subprocess.check_call(cmd1, shell=True, timeout=BIN_TIMEOUT)
+        p1 = subprocess.Popen(cmd1, shell=True)
+        p1_id = p1.pid
+        assert 0 == p1.wait(timeout=BIN_TIMEOUT), "[!] decompile returned non-zero exit"
         # os.system(f"strip {binary_file} -o {binary_file}.stripped") # strip may not support a file arch
-        subprocess.check_call(cmd2, shell=True, timeout=BIN_TIMEOUT)
+        p2 = subprocess.Popen(cmd2, shell=True)
+        p2_id = p2.pid
+        assert 0 == p2.wait(timeout=BIN_TIMEOUT), "[!] decompile returned non-zero exit"
     except Exception as e:
+        kill_pstree(p1_id)
+        kill_pstree(p2_id)
         print(e)
         if type(e) == subprocess.TimeoutExpired:
             print("[!] timeout:", binary_file)
@@ -61,11 +81,18 @@ def main():
         print('[-] process: {}'.format(binary_file))
         cmd1 = f"{IDA} -A -S{collect_var_idapython_path} {binary_file}"
         cmd2 = f"{IDA} -A -S{dump_info_idapython_path} {binary_file}.stripped"
+        p1_id, p2_id = None, None
         try:
-            subprocess.check_call(cmd1, shell=True, timeout=BIN_TIMEOUT)
+            p1 = subprocess.Popen(cmd1, shell=True)
+            p1_id = p1.pid
+            assert 0 == p1.wait(timeout=BIN_TIMEOUT), "[!] decompile returned non-zero exit"
             # os.system(f"strip {binary_file} -o {binary_file}.stripped") # strip may not support a file arch
-            subprocess.check_call(cmd2, shell=True, timeout=BIN_TIMEOUT)
+            p2 = subprocess.Popen(cmd2, shell=True)
+            p2_id = p2.pid
+            assert 0 == p2.wait(timeout=BIN_TIMEOUT), "[!] decompile returned non-zero exit"
         except Exception as e:
+            kill_pstree(p1_id)
+            kill_pstree(p2_id)
             print(e)
             if type(e) == subprocess.TimeoutExpired:
                 print("[!] timeout:", binary_file)
@@ -77,23 +104,29 @@ def multiprocess_process(binary_file_queue, thread_id):
     while not binary_file_queue.empty():
         count+=1
         binary_file = binary_file_queue.get()
-
+        print(f'[t{thread_id}] process {count}th: {binary_file}, remain {binary_file_queue.qsize()}')
         IDA = "ida" if "_32_" in binary_file else "ida64"
-        print(f'[t{thread_id}] process {count}th: {binary_file}')
 
         cmd1 = f"{IDA} -A -S{collect_var_idapython_path} {binary_file}"
         cmd2 = f"{IDA} -A -S{dump_info_idapython_path} {binary_file}.stripped"
+        p1_id, p2_id = None, None
         try:
-            subprocess.check_call(cmd1, shell=True, timeout=BIN_TIMEOUT)
+            p1 = subprocess.Popen(cmd1, shell=True)
+            p1_id = p1.pid
+            assert 0 == p1.wait(timeout=BIN_TIMEOUT), "decompile returned non-zero exit"
             # os.system(f"strip {binary_file} -o {binary_file}.stripped") # strip may not support a file arch
-            subprocess.check_call(cmd2, shell=True, timeout=BIN_TIMEOUT)
+            p2 = subprocess.Popen(cmd2, shell=True)
+            p2_id = p1.pid
+            assert 0 == p2.wait(timeout=BIN_TIMEOUT), "decompile returned non-zero exit"
         except Exception as e:
-            print(f"[t{thread_id}]", e)
+            kill_pstree(p1_id)
+            kill_pstree(p2_id)
+            print(f"[t{thread_id}] {binary_file}", e)
             if type(e) == subprocess.TimeoutExpired:
                 print(f"[t{thread_id}] timeout: {binary_file}")
             os.system(f"echo {binary_file} >> {error_list_file}")
 
-        
+
 def multiprocess_main():
     '''
     process binaries from binary_path with multi process
@@ -106,7 +139,7 @@ def multiprocess_main():
         queue.put(os.path.join(binary_path, binary_file))
 
     try:
-        threads = 4 # cpu_count()//2
+        threads = cpu_count()//2
         processes = [Process(target=multiprocess_process, args=(queue, i)) for i in range(threads)]
         for p in processes:
             p.start()
@@ -118,7 +151,7 @@ def multiprocess_main():
     
 
 if __name__ == '__main__':
-    # single_test("D:/PythonProject/reassign_identifier/examples/coreutils_8.29_gcc-7.3.0_x86_32_O3_cut.elf", IDA="ida")
+    # single_test("D:/PythonProject/reassign_identifier/examples/openssl-openssl-3.0.0_gcc-8.2.0_arm_32_O0_libssl.so.elf", IDA="ida")
 
     # main()
 
