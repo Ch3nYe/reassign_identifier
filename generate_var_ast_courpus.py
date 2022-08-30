@@ -22,11 +22,11 @@ import subprocess
 
 collect_var_idapython_path = "D:/PythonProject/reassign_identifier/collect_var_idapython.py"
 dump_info_idapython_path = "D:/PythonProject/reassign_identifier/dump_info_idapython.py"
-binary_path = "D:/PythonProject/reassign_identifier/examples"
-os.environ["LOG_FILE"] = "D:/PythonProject/reassign_identifier/idalog.txt"
-error_list_file = "D:/PythonProject/reassign_identifier/binary_unanalyzable_list.txt"
+binary_path = "D:/PythonProject/reassign_identifier/examples2"
+os.environ["LOG_FILE"] = "D:/PythonProject/reassign_identifier/828idalog.txt"
+error_list_file = "D:/PythonProject/reassign_identifier/828binary_unanalyzable_list.txt"
 BIN_SUFFIX = "*.elf"
-BIN_TIMEOUT = 1800 # set timeout for each binary
+BIN_TIMEOUT = 3600*3 # set timeout for each binary
 
 
 def kill_pstree(pid):
@@ -116,7 +116,7 @@ def multiprocess_process(binary_file_queue, thread_id):
             assert 0 == p1.wait(timeout=BIN_TIMEOUT), "decompile returned non-zero exit"
             # os.system(f"strip {binary_file} -o {binary_file}.stripped") # strip may not support a file arch
             p2 = subprocess.Popen(cmd2, shell=True)
-            p2_id = p1.pid
+            p2_id = p2.pid
             assert 0 == p2.wait(timeout=BIN_TIMEOUT), "decompile returned non-zero exit"
         except Exception as e:
             kill_pstree(p1_id)
